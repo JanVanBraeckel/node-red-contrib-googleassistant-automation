@@ -3,9 +3,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "Jan Van Braeckel",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "node-red": {
     "nodes": {
       "ga-base": "nodes/ga-base.js",
