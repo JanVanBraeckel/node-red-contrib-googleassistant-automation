@@ -145,7 +145,7 @@
           deviceListWrapper.empty();
           var ul = $("<ul>");
           RED.nodes.eachConfig(function(node) {
-            if(configNode.type === "ga-device"){
+            if(node.type === "ga-device"){
               var li = $("<li style='position: relative;'>" + 
                 "<span style='padding-right: 23px'>" + node.name + "</span> ");
               var button = $("<button id=" + node.id + " style='position: absolute; right: 0;'>x</button>");
