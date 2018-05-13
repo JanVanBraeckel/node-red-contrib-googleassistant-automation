@@ -133,7 +133,7 @@
         function removeNode(n) {
           var node;
           RED.nodes.eachConfig(function (configNode) {
-            if(configNode.id === n.target.id) {
+            if(configNode.type === "ga-device" && configNode.id === n.target.id){
               node = configNode;
             }
           });
@@ -145,11 +145,13 @@
           deviceListWrapper.empty();
           var ul = $("<ul>");
           RED.nodes.eachConfig(function(node) {
-            var li = $("<li style='position: relative;'>" + 
-              "<span style='padding-right: 23px'>" + node.name + "</span> ");
-            var button = $("<button id=" + node.id + " style='position: absolute; right: 0;'>x</button>");
-            button.on("click", removeNode);
-            li.append(button).appendTo(ul);
+            if(configNode.type === "ga-device"){
+              var li = $("<li style='position: relative;'>" + 
+                "<span style='padding-right: 23px'>" + node.name + "</span> ");
+              var button = $("<button id=" + node.id + " style='position: absolute; right: 0;'>x</button>");
+              button.on("click", removeNode);
+              li.append(button).appendTo(ul);
+            }
           });
           deviceListWrapper.append(ul);
         }
