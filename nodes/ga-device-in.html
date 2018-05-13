@@ -1,0 +1,111 @@
+<script type="text/x-red" data-template-name="ga-device in">
+  <div class="form-row">
+    <label for="node-input-alldevices"><i class="fa fa-tag"></i> Listen to all</label>
+    <input type="checkbox" id="node-input-alldevices" style="display:inline-block; width:auto; vertical-align:top;">
+  </div>
+  <div class="form-row form-row-devices">
+    <label for="node-input-device"><i class="fa fa-cog"></i> Device</label>
+    <input type="text" id="node-input-device" >
+  </div>
+  <!-- <div class="form-row form-row-actions">
+    <label for="node-input-actions"><i class="fa fa-cog"></i> Actions</label>
+    <select multiple id="node-input-actions" >
+  </div> -->
+</script>
+
+<script type="text/x-red" data-help-name="ga-device in">
+</script>
+
+<script type="text/javascript">
+(function() {
+  var supportedDevices = [
+    {
+      type: "SWITCH",
+      traits: [
+        "OnOff"
+      ]
+    },
+    {
+      type: "LIGHT",
+      traits: [
+        "OnOff",
+        "Brightness",
+        "ColorTemperature",
+        "ColorSpectrum"
+      ]
+    }
+  ];
+  
+  RED.nodes.registerType('ga-device in', {
+    category: "input",
+    color: "rgb(131, 231, 174)",
+    defaults: {
+      alldevices: {value: false},
+      device: {type: 'ga-device', value: "*"},
+      // actions: {value: ""}
+    },
+    inputs:0,
+    outputs:1,
+    icon: "bridge.png",
+    label: function() {
+      if (this.name) {
+          return this.name;
+      } else {
+          return "Action";
+      }
+    },
+    labelStyle: function() {
+      return this.name?"node_label_italic":"";
+    },
+    oneditprepare: function() {
+      $('#node-input-alldevices').change(function() {
+        if (this.checked) {
+          $('.form-row-devices').hide();
+          // $('.form-row-actions').hide();
+          $('#node-input-alldevices').val("false");
+        }
+        else {
+          $('.form-row-devices').show();
+          // $('.form-row-actions').show();
+        }
+      });
+
+      // function onDeviceTypeSelected() {
+      //   if(this.value === "_ADD_") return;
+      //   var self = this;
+
+      //   $('.form-row-actions').show();
+        
+      //   var node;
+      //   RED.nodes.eachConfig(function(config) {
+      //     if(config.id === self.value) {
+      //       node = config;
+      //     }
+      //   });
+                
+      //   var select = $("#node-input-actions").empty();
+      //   node.devicetraits.forEach(function (trait) {
+      //     select.append($("<option />").val(trait).text(trait));
+      //   });
+      // }
+
+      // $('.form-row-actions').hide();
+      // $('#node-input-device').on('change', onDeviceTypeSelected);
+
+      // if($("#node-input-device").val() !== '_ADD_'){
+      //   debugger;
+      //   var node;
+      //   RED.nodes.eachConfig(function(config) {
+      //     if(config.id === $("#node-input-device").val()) {
+      //       node = config;
+      //     }
+      //   });
+
+      //   setTimeout(() => {
+      //     $("#node-input-actions").val(node.devicetraits);
+      //   }, 100);
+      // }
+    }
+  });
+})();
+</script>

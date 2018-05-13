@@ -1,0 +1,200 @@
+<style>
+  .nr-db-sb {
+    position: absolute;
+    top: 1px;
+    bottom: 2px;
+    left: 1px;
+    right: 1px;
+    overflow-y: scroll;
+    padding: 10px;
+  }
+</style>
+<script>
+  (function($) { 
+    var editSaveEventHandler;
+    var nodesRemoveEventHandler;
+
+    var supportedDevices = [
+      {
+        type: "SWITCH",
+        traits: [
+          "OnOff"
+        ]
+      },
+      {
+        type: "LIGHT",
+        traits: [
+          "OnOff",
+          "Brightness",
+          "ColorTemperature",
+          "ColorSpectrum"
+        ]
+      }
+    ];
+    RED.nodes.registerType('ga-device',{
+      category: 'config',
+      defaults: {
+        identifier: {},
+        name: {},
+        devicetype: {},
+        devicetraits: {}
+      },
+      hasUsers: false,
+      paletteLabel: 'Assistant Devices',
+      label: function() { return this.name || 'Google Assistant Devices'; },
+      labelStyle: function() { return this.name?"node_label_italic":""; },
+      onpaletteremove: function() {
+        RED.sidebar.removeTab("gadevices");
+        RED.events.off("editor:save", editSaveEventHandler);
+        RED.events.off("nodes:remove",nodesRemoveEventHandler);
+      },
+      onpaletteadd: function() {
+        function onDeviceTypeSelected(v) {
+          var value = this.value || v;
+          var traits = supportedDevices.find(function(device) {
+            return device.type === value;
+          }).traits;
+
+          $('#traitwrapper').remove();
+
+          var traitWrapper = $("<div id='traitwrapper'>");
+          $("<label for='devicetraits'>Device traits</label>").appendTo(traitWrapper);
+          var select = $("<select multiple name='devicetraits' id='devicetraits'>");
+          traits.forEach(function (trait) {
+            select.append($("<option />").val(trait).text(trait));
+          });
+          select.appendTo(traitWrapper);
+
+          $("#devicetypewrapper").after(traitWrapper);
+        }
+
+        var wrapper = $("<div>").css({"position": "relative", "height": "100%"});
+        var content = $("<div>", {class:"nr-db-sb"}).appendTo(wrapper);
+        $("<h4>Add device</h4>").appendTo(content);
+        
+        var idWrapper = $("<div id='idwrapper'>");
+        $("<label for='id'>Id</label>").appendTo(idWrapper);
+        $("<input type='text' name='id' id='id' />").appendTo(idWrapper);
+        content.append(idWrapper);
+
+        var nameWrapper = $("<div id='namewrapper'>");
+        $("<label for='name'>Name</label>").appendTo(nameWrapper);
+        $("<input type='text' name='name' id='name' />").appendTo(nameWrapper);
+        content.append(nameWrapper);
+
+        var deviceTypeWrapper = $("<div id='devicetypewrapper'>")
+        $("<label for='devicetype'>Device type</label>").appendTo(deviceTypeWrapper);
+        var deviceType = $("<select name='devicetype' id='devicetype'>");
+        supportedDevices.forEach(function (device) {
+          deviceType.append($("<option/>").val(device.type).text(device.type));
+        });
+        deviceType.appendTo(deviceTypeWrapper);
+        content.append(deviceTypeWrapper);
+
+        function persistSelection() {
+          var idEl = $("#id");
+          var nameEl = $("#name");
+          var devicetypeEl = $("#devicetype");
+          var devicetraitsEl = $("#devicetraits");
+          var id = idEl.val();
+          var name = nameEl.val();
+          var devicetype = devicetypeEl.val();
+          var devicetraits = devicetraitsEl.val();
+          if(!(id && name && devicetype && devicetraits)){
+            return;
+          }
+
+          RED.nodes.add({
+            id: RED.nodes.id(),
+            _def: RED.nodes.getType("ga-device"),
+            users: [],
+            type: "ga-device",
+            identifier: id,
+            name: name,
+            devicetype: devicetype,
+            devicetraits: devicetraits
+          });
+          RED.nodes.dirty(true);
+          idEl.val("");
+          nameEl.val("");
+          devicetypeEl.val("");
+          devicetraitsEl.val("");
+        }
+
+        var addButton = $("<button type='button'>Add device</button>");
+        addButton.on('click', persistSelection);
+        content.append(addButton);
+
+        var deviceListWrapper = $("<div id='devicelistwrapper'></div>");
+        content.append(deviceListWrapper);
+
+        deviceType.on('change', onDeviceTypeSelected);
+
+        function removeNode(n) {
+          var node;
+          RED.nodes.eachConfig(function (configNode) {
+            if(configNode.id === n.target.id) {
+              node = configNode;
+            }
+          });
+          RED.nodes.remove(n.target.id);
+          RED.nodes.dirty(true);
+        }
+
+        function refresh() {
+          deviceListWrapper.empty();
+          var ul = $("<ul>");
+          RED.nodes.eachConfig(function(node) {
+            var li = $("<li style='position: relative;'>" + 
+              "<span style='padding-right: 23px'>" + node.name + "</span> ");
+            var button = $("<button id=" + node.id + " style='position: absolute; right: 0;'>x</button>");
+            button.on("click", removeNode);
+            li.append(button).appendTo(ul);
+          });
+          deviceListWrapper.append(ul);
+        }
+
+        RED.sidebar.addTab({
+          id: "gadevices",
+          label: "Assistant devices",
+          name: "Assistant devices",
+          content: content,
+          closeable: true,
+          disableOnEdit: true,
+          onchange: function(){ refresh(); }
+        });
+
+        onDeviceTypeSelected(supportedDevices[0].type);
+
+        editSaveEventHandler = function(node) {
+          if(node.type === "ga-device"){
+            refresh();
+          }
+        }
+
+        nodesAddEventHandler = function(node) {
+          if(node.type === "ga-device"){
+            refresh();
+          }
+        }
+
+        nodesRemoveEventHandler = function(node) {
+          if(node.type === "ga-device") {
+            var button = $("#" + node.id.replace('.', '\\.'));
+            button.parent().remove();
+          }
+        };
+
+        RED.events.on("nodes:add", nodesAddEventHandler);
+        RED.events.on("editor:save", editSaveEventHandler);
+        RED.events.on("nodes:remove", nodesRemoveEventHandler);
+      }
+    });
+  })(jQuery);
+</script>
+<script type="text/x-red" data-template-name="ga-device">
+  <div class='form-row'>
+    <a href="#" onclick="RED.sidebar.show('gadevices'); $('#node-config-dialog-cancel').click(); return false" class="editor-button">Open assistant devices</a>
+  </div>
+</script>
+<script type="text/x-red" data-help-name="ga-device"></script>
