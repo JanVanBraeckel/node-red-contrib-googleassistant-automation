@@ -1,5 +1,5 @@
 {
-  "name": "red-contrib-googleassistant-automation",
+  "name": "node-red-contrib-googleassistant-automation",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
