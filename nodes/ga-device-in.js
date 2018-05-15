@@ -19,10 +19,9 @@ module.exports = function(RED) {
     }
 
     onNodeSend = data => {
-      console.log(data);
       this.send({
-        topic: this.topic,
-        payload: data
+        topic: data.id,
+        payload: data.value
       });
     };
 
@@ -115,7 +114,6 @@ module.exports = function(RED) {
     function execute(reqdata, res) {
       let reqCommands = reqdata.body.inputs[0].payload.commands;
       let respCommands = [];
-      console.log(JSON.stringify(reqCommands));
 
       for (let i = 0; i < reqCommands.length; i++) {
         let curCommand = reqCommands[i];
