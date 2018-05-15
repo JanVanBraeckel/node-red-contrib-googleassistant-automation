@@ -5,17 +5,19 @@ module.exports = function(RED) {
   const express = require('express');
   const session = require('express-session');
   const path = require('path');
+  const http = require('http');
+  const https = require('https');
 
   const datastore = require('./../datastore');
   const authProvider = require('./../auth-provider');
 
-  let app, server, onExecute;
+  let app, onExecute;
   let onNodeSend;
 
   function GoogleActionIn(node) {
     if (!inited) {
       inited = true;
-      init();
+      init(RED.settings.google_assistant);
     }
 
     onNodeSend = data => {
@@ -29,7 +31,7 @@ module.exports = function(RED) {
   }
   RED.nodes.registerType('ga-device in', GoogleActionIn);
 
-  function init() {
+  function init(settings) {
     app = express();
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({ extended: true }));
@@ -47,7 +49,15 @@ module.exports = function(RED) {
       })
     );
 
-    server = app.listen(1881, function() {
+    let server;
+
+    if (settings && settings.key && settings.cert) {
+      server = https.createServer({ key: settings.key, cert: settings.cert }, app);
+    } else {
+      server = http.createServer(app);
+    }
+
+    server.listen(1881, function() {
       const host = server.address().address;
       const port = server.address().port;
       console.log('Smart Home App listening at %s:%s', host, port);
