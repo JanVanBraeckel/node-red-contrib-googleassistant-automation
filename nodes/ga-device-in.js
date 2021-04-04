@@ -1,17 +1,15 @@
 let inited = false;
 
 module.exports = function(RED) {
-  const bodyParser = require('body-parser');
   const express = require('express');
   const session = require('express-session');
   const path = require('path');
   const http = require('http');
   const https = require('https');
 
-  const datastore = require('./../datastore');
   const authProvider = require('./../auth-provider');
 
-  let app, onExecute;
+  let app;
   let onNodeSend;
 
   function GoogleActionIn(node) {
@@ -33,15 +31,13 @@ module.exports = function(RED) {
 
   function init(settings) {
     app = express();
-    app.use(bodyParser.json());
-    app.use(bodyParser.urlencoded({ extended: true }));
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: true }));
     app.set('trust proxy', 1); // trust first proxy
     app.set('views', path.join(__dirname, '../views'));
     app.use(
       session({
-        genid: function(req) {
-          return authProvider.genRandomString();
-        },
+        genid: () => authProvider.genRandomString(),
         secret: 'xyzsecret',
         resave: false,
         saveUninitialized: true,
@@ -66,7 +62,6 @@ module.exports = function(RED) {
     });
 
     app.post('/ha', (req, res) => {
-      let authToken = req.headers.authorization ? req.headers.authorization.split(' ')[1] : null;
       let intent = req.body.inputs[0].intent;
 
       switch (intent) {
